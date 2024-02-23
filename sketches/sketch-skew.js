@@ -15,6 +15,7 @@ const sketch = ({ width, height }) => {
   let w, h, cx, cy, fill, stroke, blend;
   const num = 37;
   const deg = 24;
+  const bgColor = random.pick(risoColors).hex;
 
   const rects = [];
 
@@ -23,7 +24,13 @@ const sketch = ({ width, height }) => {
     random.pick(risoColors).hex,
   ]
 
-  const bgColor = random.pick(risoColors).hex;
+  const mask = {
+    radius: width * 0.4,
+    sides: 3,
+    x: width / 2,
+    y: height / 2,
+  }
+
 
   for (let i = 0; i < num; i ++) {
     // Coordinates of the center of canvas
@@ -55,6 +62,18 @@ const sketch = ({ width, height }) => {
     context.fillStyle = bgColor;
     context.fillRect(0, 0, width, height);
 
+    // Drawing mask(triangle)
+    context.save();
+
+    // Move context to center of canvas
+    context.translate(mask.x, mask.y);
+
+    drawPolygon({context, radius: mask.radius, sides: mask.sides})
+
+    context.clip();
+
+    // Drawing mask(triangle) end
+
     rects.forEach(rect => {
       const {w, h, cx, cy, fill, stroke, blend} = rect;
       let shadowColorHSL = colorUtil.offsetHSL(fill, 0, 0, -20);
@@ -64,6 +83,7 @@ const sketch = ({ width, height }) => {
       context.save();
 
       // Translate the context for placing the rectangle in the center
+      context.translate(-mask.x, -mask.y)
       context.translate(cx, cy)
 
       context.strokeStyle = stroke;
@@ -89,8 +109,25 @@ const sketch = ({ width, height }) => {
       context.stroke();
 
       context.restore();
+    });
 
-    })
+
+    context.restore();
+
+
+    //Drawing polygon outline
+    context.save();
+    context.translate(mask.x, mask.y)
+    context.lineWidth = 20;
+
+    drawPolygon({context, radius: mask.radius - context.lineWidth, sides: mask.sides})
+
+    context.globalCompositeOperation = 'color-burn'
+    context.strokeStyle = rectColors[0];
+    context.stroke();
+
+    context.restore();
+    //Drawing polygon outline end
   };
 };
 
@@ -113,6 +150,21 @@ const drawSkewedRect = ({context, w = 600, h = 400, deg = 45}) => {
   context.closePath();
 
   context.restore();
+}
+
+const drawPolygon = ({context, radius = 100, sides = 3}) => {
+  const slice = Math.PI * 2 / sides;
+
+  context.beginPath();
+  context.moveTo(0, -radius);
+
+  for (let i = 1; i < sides; i ++) {
+    let angle = i * slice - Math.PI / 2;
+
+    context.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+  }
+
+  context.closePath();
 }
 
 canvasSketch(sketch, settings);
