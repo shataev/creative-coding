@@ -8,13 +8,18 @@ const settings = {
   dimensions: [ 1080, 1080 ],
 };
 
+const seed = random.getRandomSeed();
+
 /**
  * Draw rectangle
  */
 const sketch = ({ width, height }) => {
+  random.setSeed(seed);
+  console.info('Seed:', seed);
+
   let w, h, cx, cy, fill, stroke, blend;
-  const num = 37;
-  const deg = 24;
+  const num = 40;
+  const deg = -30;
   const bgColor = random.pick(risoColors).hex;
 
   const rects = [];
