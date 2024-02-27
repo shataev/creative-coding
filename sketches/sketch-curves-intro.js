@@ -90,10 +90,19 @@ const onMouseDown = (e) => {
 
   const x = (e.offsetX / elCanvas.offsetWidth) * elCanvas.width;
   const y = (e.offsetY / elCanvas.offsetHeight ) * elCanvas.height;
+  let hit = false;
 
   points.map(point => {
     point.isDragging = point.hitTest(x, y);
+
+    if (point.isDragging) {
+      hit = true;
+    }
   })
+
+  if (!hit) {
+    points.push(new Point(x, y));
+  }
 }
 
 const onMouseMove = (e) => {
