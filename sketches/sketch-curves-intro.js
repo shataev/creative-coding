@@ -12,8 +12,10 @@ let points;
 const sketch = ({canvas}) => {
   points = [
     new Point(200, 540),
-    new Point(340, 40, true),
+    new Point(340, 40),
     new Point(880, 540),
+    new Point(600, 700),
+    new Point(640, 900),
   ]
 
   elCanvas = canvas;
@@ -23,10 +25,59 @@ const sketch = ({canvas}) => {
     context.fillStyle = 'white';
     context.fillRect(0, 0, width, height);
 
+    // Draw connecting lines for finding middle points START
     context.beginPath();
     context.moveTo(points[0].x, points[0].y);
-    context.quadraticCurveTo(points[1].x, points[1].y, points[2].x, points[2].y);
+    context.strokeStyle = '#ccc';
+
+    for (let i = 0; i < points.length; i ++) {
+      context.lineTo(points[i].x, points[i].y);
+    }
+
     context.stroke();
+    context.closePath();
+    // Draw connecting lines for finding middle points END
+
+    // Middle points START
+    for (let i = 0; i < points.length - 1; i ++) {
+      const currentPoint = points[i];
+      const nextPoint = points[i + 1];
+
+      const mx = currentPoint.x + (nextPoint.x - currentPoint.x) / 2;
+      const my = currentPoint.y + (nextPoint.y - currentPoint.y) / 2;
+
+      context.beginPath();
+      context.arc(mx, my, 5, 0, Math.PI * 2);
+      context.fillStyle = 'blue';
+      context.fill();
+    }
+    // Middle points END
+
+    // Curves by middle points START
+    context.beginPath();
+    //context.moveTo(points[0].x, points[0].y);
+
+    for (let i = 0; i < points.length - 1; i ++) {
+      const currentPoint = points[i];
+      const nextPoint = points[i + 1];
+
+      const mx = currentPoint.x + (nextPoint.x - currentPoint.x) / 2;
+      const my = currentPoint.y + (nextPoint.y - currentPoint.y) / 2;
+
+      if (i === 0) {
+        context.moveTo(currentPoint.x, currentPoint.y);
+      } else if (i === points.length - 2) {
+        context.quadraticCurveTo(currentPoint.x, currentPoint.y, nextPoint.x, nextPoint.y);
+      } else  {
+        context.quadraticCurveTo(currentPoint.x, currentPoint.y, mx, my);
+      }
+    }
+
+    context.lineWidth = 4;
+    context.strokeStyle = 'maroon';
+    context.stroke();
+    context.closePath();
+    // Curves by middle points END
 
     points.forEach(point=>point.draw(context))
   };
