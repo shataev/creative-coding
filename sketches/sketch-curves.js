@@ -1,4 +1,5 @@
 const canvasSketch = require('canvas-sketch');
+const {random} = require("canvas-sketch-util");
 
 const settings = {
   dimensions: [ 1080, 1080 ]
@@ -23,10 +24,17 @@ const sketch = ({context, width, height}) => {
 
   const points = [];
 
+  // Noise
+  const frequency = 0.001;
+  const amplitude = 90;
 
   for (let i = 0; i < numCells; i ++) {
-    const x = i % cols * cw;
-    const y = Math.floor(i / cols) * ch;
+    let x = i % cols * cw;
+    let y = Math.floor(i / cols) * ch;
+    const n = random.noise2D(x, y, frequency, amplitude);
+
+    x += n;
+    y += n;
 
     points.push(new Point({x, y}));
   }
@@ -42,20 +50,23 @@ const sketch = ({context, width, height}) => {
     context.strokeStyle = 'red';
     context.lineWidth = 4;
 
-    points.forEach(point => {
-      point.draw(context);
-    })
-
+    // Drawing lines
     for (let r = 0; r < rows; r ++) {
       context.beginPath();
 
-      for (let c = 0; c < cols; c ++) {
-        const point = points[r * cols + c];
+      for (let c = 0; c < cols - 1; c ++) {
+        const currentPoint = points[r * cols + c + 0];
+        const nextPoint = points[r * cols + c + 1];
+
+        const mx = currentPoint.x + (nextPoint.x - currentPoint.x) / 2;
+        const my = currentPoint.y + (nextPoint.y - currentPoint.y) / 2;
 
         if (c === 0) {
-          context.moveTo(point.x, point.y);
-        } else {
-          context.lineTo(point.x, point.y);
+          context.moveTo(currentPoint.x, currentPoint.y);
+        } else if (c === cols - 2) {
+          context.quadraticCurveTo(currentPoint.x, currentPoint.y, nextPoint.x, nextPoint.y);
+        } else  {
+          context.quadraticCurveTo(currentPoint.x, currentPoint.y, mx, my);
         }
       }
 
