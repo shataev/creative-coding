@@ -4,11 +4,12 @@ const colormap = require('colormap');
 
 const settings = {
   dimensions: [ 1080, 1080 ],
+  animate: true,
 };
 
 const sketch = ({context, width, height}) => {
-  const cols = 52;
-  const rows = 8;
+  const cols = 92;
+  const rows = 2;
   const numCells = cols * rows;
 
   // Grid
@@ -31,11 +32,11 @@ const sketch = ({context, width, height}) => {
 
   // Noise
   const frequency = 0.001;
-  const amplitude = 90;
+  const amplitude = 190;
   let n;
 
   let colors = colormap({
-    colormap: 'density',
+    colormap: 'electric',
     nshades: amplitude,
   })
 
@@ -45,16 +46,14 @@ const sketch = ({context, width, height}) => {
 
     n = random.noise2D(x, y, frequency, amplitude);
 
-    lineWidth = math.mapRange(n, -amplitude, amplitude, 0, 8);
+    lineWidth = math.mapRange(n, -amplitude, amplitude, 0, 5);
     color = colors[Math.floor(math.mapRange(n, -amplitude, amplitude, 0, amplitude))];
 
-    x += n;
-    y += n;
 
     points.push(new Point({x, y, lineWidth, color}));
   }
 
-  return ({ context, width, height }) => {
+  return ({ context, width, height, frame }) => {
     context.fillStyle = 'black';
     context.fillRect(0, 0, width, height);
 
@@ -65,10 +64,13 @@ const sketch = ({context, width, height}) => {
     context.strokeStyle = 'red';
     context.lineWidth = 4;
 
-
+    points.forEach(point => {
+      n = random.noise2D(point.ix + frame * 4, point.iy + frame * 4, frequency, amplitude);
+      point.x = point.ix + n;
+      point.y = point.iy + n;
+    })
 
     // Drawing lines by segments
-
     let lastx, lasty;
 
     for (let r = 0; r < rows; r ++) {
@@ -110,6 +112,9 @@ class Point {
     this.y = y;
     this.lineWidth = lineWidth;
     this.color = color;
+
+    this.ix = x;
+    this.iy = y;
   }
 
   draw(context) {
